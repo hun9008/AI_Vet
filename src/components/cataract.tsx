@@ -68,7 +68,7 @@ export function Cataract() {
           "img":base64,
         }
 
-        const response = await axios.post('http://cataractmodel.hunian.site/inference/test', body, { headers: header });
+        const response = await axios.post('https://testmodel.hunian.site/inference/test', body, { headers: header });
 
         const { predicted_class, probability, all_probability, lime, vit } = response.data;
         setPredictedClass(predicted_class);
@@ -83,6 +83,21 @@ export function Cataract() {
     };
     reader.readAsDataURL(file);
   }, []);
+
+  const getKoreanClass = (predictedClass: string | null) => {
+    switch (predictedClass) {
+      case 'incipient':
+        return '초기 (incipient)';
+      case 'mature':
+        return '성숙 (mature)';
+      case 'overripe':
+        return '과숙 (overripe)';
+      case 'no':
+        return '정상 (normal)';
+      default:
+        return '';
+    }
+  };
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
@@ -102,7 +117,7 @@ export function Cataract() {
             GitHub
           </Link>
           <Link
-            href="#"
+            href="https://drive.google.com/drive/folders/1NHui2kw6M3--jb8fTyore6kN9xYU32HW?usp=sharing"
             className="inline-flex h-9 items-center justify-center rounded-md bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow transition-colors hover:bg-primary-foreground/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             prefetch={false}
           >
@@ -203,28 +218,40 @@ export function Cataract() {
                   <div className="loader"></div>
                 </div>
               ) : (
-                <div className="flex gap-4"> {/* 여기에 flex를 추가하여 가로로 배치 */}
-                  {uploadedImage && (
-                    <img
-                      src={`data:image/jpeg;base64,${uploadedImage}`}
-                      width={224}
-                      height={224}
-                      alt="Uploaded Image"
-                      className="rounded-lg object-cover"
-                      style={{ aspectRatio: "800/600", objectFit: "cover" }}
-                    />
+                <div className="flex gap-4 flex-col items-center"> {/* 여기에 flex-col을 추가하여 세로로 배치 */}
+                  <div className="flex gap-4"> {/* 여기에 flex를 추가하여 가로로 배치 */}
+                    {uploadedImage && (
+                      <div>
+                        <img
+                          src={`data:image/jpeg;base64,${uploadedImage}`}
+                          width={224}
+                          height={224}
+                          alt="Uploaded Image"
+                          className="rounded-lg object-cover"
+                          style={{ aspectRatio: "800/600", objectFit: "cover" }}
+                        />
+                      </div>
+                    )}
+                    {processedImages.map((img, index) => (
+                      <img
+                        key={index}
+                        src={`data:image/jpeg;base64,${img}`}
+                        width={224}
+                        height={224}
+                        alt={`Processed Image ${index + 1}`}
+                        className="rounded-lg object-cover"
+                        style={{ aspectRatio: "800/600", objectFit: "cover" }}
+                      />
+                    ))}
+                  </div>
+                  {predictedClass && probability !== null && (
+                    <div className="border-2 border-gray-400 p-4 text-center">
+                      <p>{`${probability.toFixed(2)}% 확률로 ${getKoreanClass(predictedClass)} 단계로 예측됩니다.`}</p>
+                      {predictedClass !== 'no' && (
+                        <p>가까운 병원에 방문해주세요!</p>
+                      )}
+                    </div>
                   )}
-                  {processedImages.map((img, index) => (
-                    <img
-                      key={index}
-                      src={`data:image/jpeg;base64,${img}`}
-                      width={224}
-                      height={224}
-                      alt={`Processed Image ${index + 1}`}
-                      className="rounded-lg object-cover"
-                      style={{ aspectRatio: "800/600", objectFit: "cover" }}
-                    />
-                  ))}
                 </div>
               )}
             </div>
